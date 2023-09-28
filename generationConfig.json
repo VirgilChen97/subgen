@@ -1,0 +1,170 @@
+{
+    "subscriptions": [
+        {
+            "tag": "huacloud",
+            "url": "https://api.huacloud.xyz/sub?target=clash&insert=true&emoji=true&udp=true&new_name=true&filename=Flower_SS&url=https%3A%2F%2Fapi.flowercloud.xyz%2Fosubscribe.php%3Fsid%3D71241%26token%3Dv4dpx1yvow8O%26sip002%3D1",
+            "cache": 86400
+        },
+        {
+            "tag": "huacloud",
+            "url": "https://api.huacloud.xyz/sub?target=clash&insert=true&emoji=true&udp=true&new_name=true&filename=Flower_SS&url=https%3A%2F%2Fsub1.smallstrawberry.com%2Fapi%2Fv1%2Fclient%2Fsubscribe%3Ftoken%3D870df885126bfda7a5a4f2c57089cab5",
+            "cache": 86400
+        },
+        {
+            "tag": "huacloud",
+            "url": "https://api.huacloud.xyz/sub?target=clash&insert=true&emoji=true&udp=true&new_name=true&filename=Flower_SS&url=https%3A%2F%2Fapi.flowercloud.xyz%2Fosubscribe.php%3Fsid%3D71241%26token%3Dv4dpx1yvow8O%26sip002%3D1",
+            "cache": 86400
+        },
+        {
+            "tag": "huacloud",
+            "url": "https://api.huacloud.xyz/sub?target=clash&insert=true&emoji=true&udp=true&new_name=true&filename=Flower_SS&url=https%3A%2F%2Fapi.flowercloud.xyz%2Fosubscribe.php%3Fsid%3D71241%26token%3Dv4dpx1yvow8O%26sip002%3D1",
+            "cache": 86400
+        }
+    ],
+    "base": "clash_base_config_work.yaml",
+    "proxy_groups": [
+        {
+            "name": "自定义直连",
+            "type": "select",
+            "includes": ["出口代理","直连规则","DIRECT"]
+        },
+        {
+            "name": "默认规则",
+            "type": "select",
+            "includes": ["出口代理","直连规则"]
+        },        
+        {
+            "name": "直连规则",
+            "type": "select",
+            "includes": ["出口代理","DIRECT","回家"]
+        },
+        {
+            "name": "出口代理",
+            "type": "select",
+            "includes": ["花云低倍率自动择优","花云自动择优","备用自动择优"]
+        },
+        {
+            "name": "回家",
+            "type": "select",
+            "regex": "home.virch.cc",
+            "includes": ["DIRECT"]
+        },
+        {
+            "name": "美国",
+            "type": "select",
+            "regex": "(美国|us|US|🇺🇸)",
+            "includes": ["DIRECT"]
+        },
+        {
+            "type": "url-test",
+            "name": "花云低倍率自动择优",
+            "test_url": "http://www.google.com/generate_204",
+            "interval": 300,
+            "tolerance": 200,
+            "filters": [
+                {
+                    "type": "tag",
+                    "regex": "huacloud"
+                },
+                {
+                    "type": "name",
+                    "regex": "实验性",
+                    "negative_regex": "traffic"
+                }
+            ]
+        },
+        {
+            "type": "url-test",
+            "name": "花云自动择优",
+            "test_url": "http://www.google.com/generate_204",
+            "interval": 300,
+            "tolerance": 200,
+            "filters": [
+                {
+                    "type": "tag",
+                    "regex": "huacloud"
+                }
+            ]
+        },
+        {
+            "type": "url-test",
+            "name": "备用自动择优",
+            "test_url": "http://www.google.com/generate_204",
+            "interval": 300,
+            "tolerance": 500,
+            "filters": [
+                {
+                    "type": "tag",
+                    "negative_regex": "huacloud"
+                }
+            ]
+        }
+    ],
+    "rulesets": [
+        {
+            "type": "IP-CIDR",
+            "params": ["10.0.0.0/24"],
+            "target": "回家"
+        },
+        {
+            "type": "DOMAIN-SUFFIX",
+            "params": ["ho.me"],
+            "target": "回家"
+        },
+        {
+            "type": "DOMAIN-KEYWORD",
+            "params": ["openai","bard.google.com"],
+            "target": "美国"
+        },
+        {
+            "type": "DOMAIN-KEYWORD",
+            "params": ["shadowcore"],
+            "target": "俄罗斯"
+        },
+        {
+            "type": "classic",
+            "url": "http://config.ho.me/clash/custom_direct.txt",
+            "target": "自定义直连"
+        },
+        {
+            "type": "classic",
+            "url": "http://config.ho.me/clash/custom_proxy.txt",
+            "target": "出口代理"
+        },
+        {
+            "type": "classic",
+            "url": "http://config.ho.me/clash/custom_reject.txt",
+            "target": "REJECT"
+        },
+        {
+            "type": "domain",
+            "url": "http://config.ho.me/clash/clash_rules/proxy.txt",
+            "target": "出口代理"
+        },
+        {
+            "type": "domain",
+            "url": "http://config.ho.me/clash/clash_rules/gfw.txt",
+            "target": "出口代理"
+        },
+        {
+            "type": "domain",
+            "url": "http://config.ho.me/clash/clash_rules/direct.txt",
+            "target": "直连规则"
+        },
+        {
+            "type": "ipcidr",
+            "url": "http://config.ho.me/clash/clash_rules/cncidr.txt",
+            "target": "直连规则"
+        },
+        {
+            "type": "GEOIP",
+            "params": ["CN"],
+            "target": "直连规则"
+        },
+        {
+            "type": "match",
+            "target": "默认规则"
+        }
+
+    ]
+}

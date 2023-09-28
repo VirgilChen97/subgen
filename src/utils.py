@@ -1,0 +1,61 @@
+import logging, json, requests, hashlib, yaml, os, re, ipaddress
+from datetime import datetime, timedelta
+
+CACHE_DIR = "cache"
+
+def is_valid_ipv6(address):
+    try:
+        network = ipaddress.IPv6Network(address, strict=False)
+        return True
+    except (ipaddress.AddressValueError, ValueError):
+        return False
+
+def is_valid_ipv4(address):
+    try:
+        network = ipaddress.IPv4Network(address, strict=False)
+        return True
+    except (ipaddress.AddressValueError, ValueError):
+        return False
+
+def calculate_url_hash(url):
+    """计算URL的哈希值作为缓存文件名"""
+    hash_object = hashlib.md5(url.encode())
+    return hash_object.hexdigest()
+
+def download_and_cache(url, cache_time=86400):
+    try:
+        current_time = datetime.now()
+        url_hash = calculate_url_hash(url)
+        cache_file = os.path.join(CACHE_DIR, f'{url_hash}.cache')
+        
+        # 检查缓存文件是否存在并且未过期
+        if os.path.exists(cache_file) and (current_time - datetime.fromtimestamp(os.path.getmtime(cache_file))).total_seconds() < cache_time:
+            logging.info(f"使用缓存的资源: {url}")
+            with open(cache_file, 'rb') as file:
+                cached_data = file.read()
+            return cached_data
+
+        logging.info(f"下载资源: {url}")
+        response = requests.get(url)
+        response.raise_for_status()  # 检查是否下载成功
+        
+        # 获取响应的二进制数据
+        downloaded_data = response.content
+
+        # 将新下载的数据写入缓存文件
+        with open(cache_file, 'wb') as file:
+            file.write(downloaded_data)
+
+        return downloaded_data
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"HTTP请求出错: {e}")
+        raise e
+
+def read_yaml_string(yaml_string):
+    try:
+        yaml_data = yaml.safe_load(yaml_string)
+        return yaml_data
+    except yaml.YAMLError as e:
+        logging.error(f"YAML解析出错: {e}")
+        raise e

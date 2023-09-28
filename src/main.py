@@ -1,0 +1,55 @@
+import yaml
+import logging
+import sys
+import os
+from config import Config
+from config import Proxy
+
+OUTPUT_DIR = 'generated.yaml'
+
+# 配置日志记录器
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+arguments = sys.argv[1:]
+if len(arguments) == 0:
+    logging.error("未提供配置文件路径")
+    exit(1)
+
+config_file_path = arguments[0]
+if not os.path.exists(config_file_path):
+    logging.error("配置文件路径非法")
+    exit(1)
+
+# 读取配置文件
+generation_config = Config(config_file_path)
+
+# 提取节点信息
+all_proxies = [Proxy(subscription.tag, proxy['name'], proxy) 
+    for subscription in generation_config.subscriptions
+    for proxy in subscription.data.get('proxies', [])
+]
+
+# 读取基础配置
+base_config = None
+with open(generation_config.base, 'r') as file:
+    base_config = yaml.safe_load(file)
+
+# 写入 proxies
+base_config['proxies'] += [proxy.data for proxy in all_proxies]
+
+# 生成 proxy groups
+base_config['proxy-groups'] = []
+for proxy_group in generation_config.proxy_groups: 
+    base_config['proxy-groups'].append(proxy_group.generate(all_proxies))
+
+# 生成 rules
+base_config['rules'] = []
+for ruleset in generation_config.rulesets:
+    ruleset_rules = ruleset.generate()
+    for ruleset_rule in ruleset_rules:
+        base_config['rules'].append(ruleset_rule.to_string())
+
+# 将新生成的配置写入文件
+with open(OUTPUT_DIR, 'w') as file:
+    yaml.dump(base_config, file, allow_unicode=True, sort_keys=False, Dumper=yaml.SafeDumper)
+
