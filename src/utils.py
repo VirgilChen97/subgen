@@ -33,7 +33,7 @@ def download_and_cache(url, cache_time=86400):
             logging.info(f"使用缓存的资源: {url}")
             with open(cache_file, 'rb') as file:
                 cached_data = file.read()
-            return cached_data
+            return cached_data.decode('utf-8')
 
         logging.info(f"下载资源: {url}")
         response = requests.get(url)
@@ -46,7 +46,7 @@ def download_and_cache(url, cache_time=86400):
         with open(cache_file, 'wb') as file:
             file.write(downloaded_data)
 
-        return downloaded_data
+        return downloaded_data.decode('utf-8')
 
     except requests.exceptions.RequestException as e:
         logging.error(f"HTTP请求出错: {e}")

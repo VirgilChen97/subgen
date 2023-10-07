@@ -1,6 +1,7 @@
 import logging, json, requests, hashlib, yaml, os, re, ipaddress
 from datetime import datetime, timedelta
-from utils import download_and_cache, read_yaml_string
+from utils import download_and_cache, read_yaml_string, is_valid_ipv4, is_valid_ipv6
+from sub_parser import download_sub_and_parse
 
 class Config:
     def __init__(self, config_file_path):
@@ -69,7 +70,10 @@ class Filter:
         if re.search(self.regex, input_string):
             # 检查是否存在满足负正则表达式的子串
             if not re.search(self.negative_regex, input_string):
+                logging.debug(f'{input_string} 满足 regex: {self.regex} -regex:{self.negative_regex}')
                 return True
+        
+        logging.debug(f'{input_string} 不满足 regex:{self.regex} -regex:{self.negative_regex}')
         return False
             
 
@@ -96,29 +100,37 @@ class ProxyGroup:
 
     def generate(self, proxies: list[Proxy]):
         # 筛选代理列表
-        if self.filters == None or len(self.filters) == 0:
-            proxies = []
-        else:
-            for filter_item in self.filters:
-                proxies = filter_item.filter(proxies)
+        logging.info(f"生成代理组 {self.name}, 类型: {self.type}")
+        proxy_list = []
         
+        if self.filters == None or len(self.filters) == 0:
+            proxy_list = []
+        else:
+            proxy_list = proxies.copy()
+            for filter_item in self.filters:
+                proxy_list = filter_item.filter(proxy_list)
+        
+        result = {}
         if self.type == 'url-test':
-            return {
+            result = {
                 'name': self.name,
                 'type': 'url-test',
                 'url': self.test_url,
                 'interval': self.interval,
                 'tolerance': self.tolerance,
-                'proxies': [proxy.name for proxy in proxies] + self.inludes
+                'proxies': [proxy.name for proxy in proxy_list] + self.inludes
             }
         elif self.type == 'select':
-            return {
+            result = {
                 'name': self.name,
                 'type': 'select',
-                'proxies': [proxy.name for proxy in proxies] + self.inludes
+                'proxies': [proxy.name for proxy in proxy_list] + self.inludes
             }
         else:
             raise ValueError('不支持的 Proxy Group Type: ' + self.type)
+
+        logging.info(f"生成代理组 {self.name} 成功, 节点数: {len(result['proxies'])}")
+        return result
 
 class Rule:
     def __init__(self, rule_type: str, param: str, target:str):
@@ -138,9 +150,10 @@ class Ruleset:
         self.params = params
         self.target = target
         if url is not None:
-            self.data = download_and_parse_yaml(self.url)['payload']
+            self.data = read_yaml_string(download_and_cache(self.url))['payload']
 
     def generate(self):
+        logging.info(f"从规则集 {self.url} 生成规则, TARGET: {self.target}")
         if self.type == 'classic':
             return self.generate_clash_classic()
         elif self.type == 'match':
@@ -149,8 +162,11 @@ class Ruleset:
             return self.generate_clash_ipcidr()
         elif self.type == 'domain':
             return self.generate_clash_domain()
-        else:
+        elif self.url is None:
             return self.generate_clash()
+        else:
+            log.error(f'不支持的规则组合 type: {self.type}')
+            raise e
 
     def generate_clash_classic(self):
         rules = []
@@ -195,6 +211,6 @@ class Subscription:
         self.tag = tag
         self.url = url
         self.cache = cache
-        self.data = read_yaml_string(download_and_cache(self.url, self.cache).decode('utf-8'))
+        self.data = download_sub_and_parse(self.url, self.cache)
 
             

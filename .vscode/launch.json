@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/src/main.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["generationConfig.json"]
+            "args": ["-c", "generationConfig.json", "-o", "output.yaml"]
         },
         {
             "name": "Current",
