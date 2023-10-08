@@ -12,6 +12,7 @@ if __name__ == '__main__':
     # 添加命令行参数
     parser.add_argument('-c', '--config', help='配置文件路径')
     parser.add_argument('-o', '--output', help='输出文件的路径')
+    parser.add_argument('-b', '--base', help='基础配置文件路径')
     parser.add_argument('--loglevel', help='日志级别', default='INFO')
 
     # 解析命令行参数
@@ -30,9 +31,18 @@ if __name__ == '__main__':
 
     if args.output is None:
         logging.error("未提供输出文件路径")
+        exit(1)
+
+    if args.base is None:
+        logging.error("未提供基础配置文件路径")
+        exit(1)
 
     if not os.path.exists(args.config):
         logging.error("配置文件路径非法")
+        exit(1)
+
+    if not os.path.exists(args.base):
+        logging.error("基础配置文件路径非法")
         exit(1)
 
     # 读取配置文件
@@ -46,7 +56,7 @@ if __name__ == '__main__':
 
     # 读取基础配置
     base_config = None
-    with open(generation_config.base, 'r') as file:
+    with open(args.base, 'r') as file:
         base_config = yaml.safe_load(file)
 
     # 节点添加基础配置节点
