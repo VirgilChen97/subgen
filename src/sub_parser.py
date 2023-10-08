@@ -3,7 +3,9 @@ import logging
 from urllib.parse import urlparse, parse_qs, unquote
 from utils import download_and_cache
 
-SSR_CIPHERS = ['aes-128-cfb','aes-192-cfb','aes-256-cfb','aes-128-ctr','aes-192-ctr','aes-256-ctr','rc4-md5','chacha20-ietf','xchacha20']
+SSR_CIPHERS = ['aes-128-cfb', 'aes-192-cfb', 'aes-256-cfb', 'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr', 'rc4-md5',
+               'chacha20-ietf', 'xchacha20']
+
 
 def decode_base64(encoded_str):
     try:
@@ -12,12 +14,14 @@ def decode_base64(encoded_str):
     except Exception as e:
         raise e
 
+
 def decode_url_base64(encoded_str):
     try:
         decoded_bytes = base64.urlsafe_b64decode(encoded_str + '==')
         return decoded_bytes.decode('utf-8')
     except Exception as e:
         raise e
+
 
 def parse_sub_url(url):
     parsed_url = urlparse(url)
@@ -35,7 +39,7 @@ def parse_sub_url(url):
         }
         if 'sni' in query:
             node['sni'] = query['sni'][0]
-        if 'allowInsecure' in query: 
+        if 'allowInsecure' in query:
             node['skip-cert-verify'] = query['allowInsecure'][0] == '1'
 
     elif parsed_url.scheme == 'ss':
@@ -88,9 +92,11 @@ def parse_sub_url(url):
     logging.info(f'{parsed_url.scheme} 节点 {node["name"]} 解析成功')
     return node
 
+
 def check_ssr_node(node):
     if node['cipher'] not in SSR_CIPHERS:
         raise ValueError(f"SSR 不支持 cipher: {node['cipher']}")
+
 
 def download_sub_and_parse(url, cache):
     logging.info(f'开始处理订阅: {url}')
@@ -106,7 +112,3 @@ def download_sub_and_parse(url, cache):
 
     logging.info(f'处理完成，共处理节点 {len(nodes)} 个')
     return nodes
-
-
-
-

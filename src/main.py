@@ -20,7 +20,7 @@ args = parser.parse_args()
 # 配置日志记录器
 log_level = getattr(logging, args.loglevel, None)
 logging.basicConfig(
-    level=log_level if log_level is None else logging.INFO, 
+    level=log_level if log_level is None else logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
@@ -39,10 +39,10 @@ if not os.path.exists(args.config):
 generation_config = Config(args.config)
 
 # 提取节点信息
-all_proxies = [Proxy(subscription.tag, proxy['name'], proxy) 
-    for subscription in generation_config.subscriptions
-    for proxy in subscription.data
-]
+all_proxies = [Proxy(subscription.tag, proxy['name'], proxy)
+               for subscription in generation_config.subscriptions
+               for proxy in subscription.data
+               ]
 
 # 读取基础配置
 base_config = None
@@ -57,7 +57,7 @@ base_config['proxies'] = [proxy.data for proxy in all_proxies]
 
 # 生成 proxy groups
 base_config['proxy-groups'] = []
-for proxy_group in generation_config.proxy_groups: 
+for proxy_group in generation_config.proxy_groups:
     base_config['proxy-groups'].append(proxy_group.generate(all_proxies))
 
 # 生成 rules
@@ -70,4 +70,3 @@ for ruleset in generation_config.rulesets:
 # 将新生成的配置写入文件
 with open(args.output, 'w') as file:
     yaml.dump(base_config, file, allow_unicode=True, sort_keys=False, Dumper=yaml.SafeDumper)
-
