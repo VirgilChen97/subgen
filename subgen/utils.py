@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import ipaddress
 import logging
@@ -7,6 +8,22 @@ import yaml
 from datetime import datetime
 
 CACHE_DIR = "cache"
+
+
+def decode_base64(encoded_str):
+    try:
+        decoded_bytes = base64.b64decode(encoded_str + '==')
+        return decoded_bytes.decode('utf-8')
+    except Exception as e:
+        raise e
+
+
+def decode_url_base64(encoded_str):
+    try:
+        decoded_bytes = base64.urlsafe_b64decode(encoded_str + '==')
+        return decoded_bytes.decode('utf-8')
+    except Exception as e:
+        raise e
 
 
 def is_valid_ipv6(address):

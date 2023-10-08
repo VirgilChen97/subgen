@@ -1,4 +1,5 @@
 .vscode
+cache
 __pycache__/
 generationConfig.json
 clash_base_config_work.yaml
