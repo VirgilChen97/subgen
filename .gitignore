@@ -2,5 +2,5 @@
 cache
 config
 __pycache__/
-config/generationConfig.json
+config/work.json
 config/work.yaml

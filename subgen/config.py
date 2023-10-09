@@ -24,7 +24,6 @@ class Config:
             raise e
 
     def parse_config(self, config_dict):
-        self.base = config_dict['base']
         self.subscriptions = [Subscription(
             subscription.get('tag'),
             subscription.get('url'),
