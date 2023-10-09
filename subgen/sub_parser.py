@@ -1,7 +1,7 @@
 import logging
 from url_processor import processors
 from urllib.parse import urlparse, parse_qs
-from subgen.utils import download_and_cache, decode_base64
+from utils import download_and_cache, decode_base64
 
 SSR_CIPHERS = ['aes-128-cfb', 'aes-192-cfb', 'aes-256-cfb', 'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr', 'rc4-md5',
                'chacha20-ietf', 'xchacha20']
