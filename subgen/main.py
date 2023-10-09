@@ -7,13 +7,13 @@ from config import Proxy
 
 if __name__ == '__main__':
     # 创建一个ArgumentParser对象
-    parser = argparse.ArgumentParser(description='Clash 配置生成工具')
+    parser = argparse.ArgumentParser(description='Clash config generation tool')
 
     # 添加命令行参数
-    parser.add_argument('-c', '--config', help='配置文件路径')
-    parser.add_argument('-o', '--output', help='输出文件的路径')
-    parser.add_argument('-b', '--base', help='基础配置文件路径')
-    parser.add_argument('--loglevel', help='日志级别', default='INFO')
+    parser.add_argument('-c', '--config', help='Generation config file path')
+    parser.add_argument('-o', '--output', help='Output file path')
+    parser.add_argument('-b', '--base', help='Base config file path')
+    parser.add_argument('--loglevel', help='Log level', default='INFO')
 
     # 解析命令行参数
     args = parser.parse_args()
@@ -25,24 +25,16 @@ if __name__ == '__main__':
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
-    if args.config is None:
-        logging.error("未提供配置文件路径")
+    if args.config is None or not os.path.exists(args.config):
+        logging.error("Invalid config file path.")
         exit(1)
 
     if args.output is None:
-        logging.error("未提供输出文件路径")
+        logging.error("Invalid output file path.")
         exit(1)
 
-    if args.base is None:
-        logging.error("未提供基础配置文件路径")
-        exit(1)
-
-    if not os.path.exists(args.config):
-        logging.error("配置文件路径非法")
-        exit(1)
-
-    if not os.path.exists(args.base):
-        logging.error("基础配置文件路径非法")
+    if args.base is None or not os.path.exists(args.base):
+        logging.error("Invalid config file base path.")
         exit(1)
 
     # 读取配置文件

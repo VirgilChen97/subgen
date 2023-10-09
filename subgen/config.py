@@ -14,13 +14,13 @@ class Config:
         self.base = None
 
         try:
-            logging.info("读取配置文件: " + config_file_path)
+            logging.info("Loading config file: " + config_file_path)
             with open(config_file_path, 'r', encoding='utf-8') as config_file:
                 config_dict = json.load(config_file)
                 self.parse_config(config_dict)
 
         except Exception as e:
-            logging.info("读取配置文件失败: " + config_file_path, e)
+            logging.info("Loading config file failed: " + config_file_path, e)
             raise e
 
     def parse_config(self, config_dict):
@@ -72,17 +72,17 @@ class Filter:
         elif self.type == 'name':
             return [proxy for proxy in proxies if self.check_regex_condition(proxy.name)]
         else:
-            raise ValueError("不支持的 Filter 类型: " + self.type)
+            raise ValueError("Unsupported filter type: " + self.type)
 
     def check_regex_condition(self, input_string):
         # 检查是否存在满足正则表达式的子串
         if re.search(self.regex, input_string):
             # 检查是否存在满足负正则表达式的子串
             if not re.search(self.negative_regex, input_string):
-                logging.debug(f'{input_string} 满足 regex: {self.regex} -regex:{self.negative_regex}')
+                logging.debug(f'{input_string} satisfies regex: {self.regex} -regex:{self.negative_regex}')
                 return True
 
-        logging.debug(f'{input_string} 不满足 regex:{self.regex} -regex:{self.negative_regex}')
+        logging.debug(f'{input_string} not satisfy regex:{self.regex} -regex:{self.negative_regex}')
         return False
 
 
@@ -109,7 +109,7 @@ class ProxyGroup:
 
     def generate(self, proxies: list[Proxy]):
         # 筛选代理列表
-        logging.info(f"生成代理组 {self.name}, 类型: {self.type}")
+        logging.info(f"Generation proxy group [{self.name}], type: {self.type}")
         proxy_list = []
 
         if self.filters is None or len(self.filters) == 0:
@@ -136,9 +136,9 @@ class ProxyGroup:
                 'proxies': [proxy.name for proxy in proxy_list] + self.includes
             }
         else:
-            raise ValueError('不支持的 Proxy Group Type: ' + self.type)
+            raise ValueError('Unsupported proxy group type: ' + self.type)
 
-        logging.info(f"生成代理组 {self.name} 成功, 节点数: {len(result['proxies'])}")
+        logging.info(f"Generate proxy group [{self.name}] success, node count: {len(result['proxies'])}")
         return result
 
 
@@ -155,16 +155,17 @@ class Rule:
 
 
 class Ruleset:
-    def __init__(self, rules_type: str, url: str, params: list, target: str):
+    def __init__(self, rules_type: str, url: str, params: list, target: str, provider: bool=False):
         self.type = rules_type
         self.url = url
         self.params = params
         self.target = target
+        self.provider = provider
         if url is not None:
             self.data = read_yaml_string(download_and_cache(self.url))['payload']
 
     def generate(self):
-        logging.info(f"从规则集 {self.url} 生成规则, TARGET: {self.target}")
+        logging.info(f"Generate rules from {self.url} , TARGET: {self.target}")
         if self.type == 'classic':
             return self.generate_clash_classic()
         elif self.type == 'match':
@@ -176,7 +177,7 @@ class Ruleset:
         elif self.url is None:
             return self.generate_clash()
         else:
-            logging.error(f'不支持的规则组合 type: {self.type}')
+            logging.error(f'Unsupported rule type: {self.type}')
             raise ValueError()
 
     def generate_clash_classic(self):
@@ -203,7 +204,7 @@ class Ruleset:
             elif is_valid_ipv6(line):
                 rules.append(Rule('IP-CIDR6', line, self.target))
             else:
-                raise ValueError(line + " 不是合法的 IP 地址")
+                raise ValueError(line + " is not valid ip address")
         return rules
 
     def generate_clash(self):

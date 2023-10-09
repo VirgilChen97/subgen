@@ -57,12 +57,12 @@ def download_and_cache(url, cache_time=86400):
         # 检查缓存文件是否存在并且未过期
         if os.path.exists(cache_file) and (
                 current_time - datetime.fromtimestamp(os.path.getmtime(cache_file))).total_seconds() < cache_time:
-            logging.info(f"使用缓存的资源: {url}")
+            logging.info(f"Using cached asset: {url}")
             with open(cache_file, 'rb') as file:
                 cached_data = file.read()
             return cached_data.decode('utf-8')
 
-        logging.info(f"下载资源: {url}")
+        logging.info(f"Downloading asset: {url}")
         response = requests.get(url)
         response.raise_for_status()  # 检查是否下载成功
 
@@ -76,7 +76,7 @@ def download_and_cache(url, cache_time=86400):
         return downloaded_data.decode('utf-8')
 
     except requests.exceptions.RequestException as e:
-        logging.error(f"HTTP请求出错: {e}")
+        logging.error(f"HTTP reqeust error: {e}")
         raise e
 
 
@@ -85,5 +85,5 @@ def read_yaml_string(yaml_string):
         yaml_data = yaml.safe_load(yaml_string)
         return yaml_data
     except yaml.YAMLError as e:
-        logging.error(f"YAML解析出错: {e}")
+        logging.error(f"YAML parse error: {e}")
         raise e

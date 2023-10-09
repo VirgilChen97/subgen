@@ -15,12 +15,12 @@ def parse_sub_url(url):
     node = processor.process(url, parsed_url, query)
 
     if node is not None:
-        logging.info(f'{parsed_url.scheme} 节点 {node["name"]} 解析成功')
+        logging.info(f'Successfully parsed {parsed_url.scheme} node {node["name"]}')
     return node
 
 
 def download_sub_and_parse(url, cache):
-    logging.info(f'开始处理订阅: {url}')
+    logging.info(f'Processing subscription: {url}')
     raw_sub = download_and_cache(url, cache)
     decoded = decode_base64(raw_sub)
     lines = decoded.split('\n')
@@ -31,5 +31,5 @@ def download_sub_and_parse(url, cache):
             if node is not None:
                 nodes.append(node)
 
-    logging.info(f'处理完成，共处理节点 {len(nodes)} 个')
+    logging.info(f'Subscription processing complete，total nodes: {len(nodes)}')
     return nodes

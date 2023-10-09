@@ -1,5 +1,6 @@
 .vscode
 cache
+config
 __pycache__/
-generationConfig.json
-clash_base_config_work.yaml
+config/generationConfig.json
+config/work.yaml
