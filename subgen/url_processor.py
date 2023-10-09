@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod
 from urllib.parse import unquote, urlparse, parse_qs
 
-from ..utils import decode_base64, decode_url_base64
+from utils import decode_base64, decode_url_base64
 
 
 class UrlProcessor:

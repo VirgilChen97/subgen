@@ -2,7 +2,7 @@ import json
 import logging
 import re
 
-from subgen.parser.sub_parser import download_sub_and_parse
+from sub_parser import download_sub_and_parse
 from utils import download_and_cache, read_yaml_string, is_valid_ipv4, is_valid_ipv6
 
 
