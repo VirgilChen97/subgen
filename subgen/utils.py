@@ -85,8 +85,8 @@ class ExternalResource:
                 if self.proxy is not None:
                     logging.info(f"Using proxy: {self.proxy}")
                     proxies = {
-                        'http': self.proxy,
-                        'https': self.proxy
+                        'HTTP': self.proxy,
+                        'HTTPS': self.proxy
                     }
 
                 response = requests.get(self.url, proxies=proxies)
