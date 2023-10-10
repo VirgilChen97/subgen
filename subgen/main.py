@@ -52,7 +52,8 @@ if __name__ == '__main__':
         base_config = yaml.safe_load(file)
 
     # 节点添加基础配置节点
-    all_proxies = [Proxy("", proxy['name'], proxy) for proxy in base_config['proxies']] + all_proxies
+    if 'proxies' in base_config:
+        all_proxies = [Proxy("", proxy['name'], proxy) for proxy in base_config['proxies']] + all_proxies
 
     # 写入 proxies
     base_config['proxies'] = [proxy.data for proxy in all_proxies]
