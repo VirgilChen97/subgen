@@ -2,8 +2,8 @@ import json
 import logging
 import re
 
-from sub_parser import download_sub_and_parse
-from utils import download_and_cache, read_yaml_string, is_valid_ipv4, is_valid_ipv6
+from sub_parser import parse
+from utils import read_yaml_string, is_valid_ipv4, is_valid_ipv6, ExternalResource
 
 
 class Config:
@@ -27,7 +27,9 @@ class Config:
         self.subscriptions = [Subscription(
             subscription.get('tag'),
             subscription.get('url'),
-            subscription.get('cache')
+            subscription.get('cache'),
+            subscription.get('type'),
+            subscription.get('proxy')
         ) for subscription in config_dict['subscriptions']]
         self.proxy_groups = [ProxyGroup(
             proxy_group.get('type'),
@@ -42,8 +44,12 @@ class Config:
             ruleset.get('type'),
             ruleset.get('url'),
             ruleset.get('params'),
-            ruleset.get('target')
+            ruleset.get('target'),
+            ruleset.get('cache'),
+            ruleset.get('resource_type'),
+            ruleset.get('proxy')
         ) for ruleset in config_dict['rulesets']]
+        pass
 
 
 class Proxy:
@@ -153,30 +159,29 @@ class Rule:
         return self.rule_type + ',' + self.param + ',' + self.target
 
 
-class Ruleset:
-    def __init__(self, rules_type: str, url: str, params: list, target: str, provider: bool=False):
-        self.type = rules_type
-        self.url = url
+class Ruleset(ExternalResource):
+    def __init__(self, rules_type: str, url: str, params: list, target: str, cache: int, resource_type: str, proxy: str):
+        self.rules_type = rules_type
         self.params = params
         self.target = target
-        self.provider = provider
+        super().__init__(resource_type, url, cache, proxy)
         if url is not None:
-            self.data = read_yaml_string(download_and_cache(self.url))['payload']
+            self.data = read_yaml_string(self.load())['payload']
 
     def generate(self):
         logging.info(f"Generate rules from {self.url} , TARGET: {self.target}")
-        if self.type == 'classic':
+        if self.rules_type == 'classic':
             return self.generate_clash_classic()
-        elif self.type == 'match':
+        elif self.rules_type == 'match':
             return [Rule("MATCH", None, self.target)]
-        elif self.type == 'ipcidr':
+        elif self.rules_type == 'ipcidr':
             return self.generate_clash_ipcidr()
-        elif self.type == 'domain':
+        elif self.rules_type == 'domain':
             return self.generate_clash_domain()
         elif self.url is None:
             return self.generate_clash()
         else:
-            logging.error(f'Unsupported rule type: {self.type}')
+            logging.error(f'Unsupported rule type: {self.rules_type}')
             raise ValueError()
 
     def generate_clash_classic(self):
@@ -210,16 +215,17 @@ class Ruleset:
         rules = []
         if self.url is None:
             for param in self.params:
-                rules.append(Rule(self.type, param, self.target))
+                rules.append(Rule(self.rules_type, param, self.target))
         else:
             for line in self.data:
-                rules.append(Rule(self.type, line, self.target))
+                rules.append(Rule(self.rules_type, line, self.target))
         return rules
 
 
-class Subscription:
-    def __init__(self, tag: str, url: str, cache: int = 86400):
+class Subscription(ExternalResource):
+    def __init__(self, tag: str, url: str, cache: int, resource_type: str, proxy: str):
         self.tag = tag
         self.url = url
         self.cache = cache
-        self.data = download_sub_and_parse(self.url, self.cache)
+        super().__init__(resource_type, url, cache, proxy)
+        self.data = parse(self.load(), self.url)

@@ -48,38 +48,6 @@ def calculate_url_hash(url):
     return hash_object.hexdigest()
 
 
-def download_and_cache(url, cache_time=86400):
-    try:
-        current_time = datetime.now()
-        url_hash = calculate_url_hash(url)
-        cache_file = os.path.join(CACHE_DIR, f'{url_hash}.cache')
-
-        # 检查缓存文件是否存在并且未过期
-        if os.path.exists(cache_file) and (
-                current_time - datetime.fromtimestamp(os.path.getmtime(cache_file))).total_seconds() < cache_time:
-            logging.info(f"Using cached asset: {url}")
-            with open(cache_file, 'rb') as file:
-                cached_data = file.read()
-            return cached_data.decode('utf-8')
-
-        logging.info(f"Downloading asset: {url}")
-        response = requests.get(url)
-        response.raise_for_status()  # 检查是否下载成功
-
-        # 获取响应的二进制数据
-        downloaded_data = response.content
-
-        # 将新下载的数据写入缓存文件
-        with open(cache_file, 'wb') as file:
-            file.write(downloaded_data)
-
-        return downloaded_data.decode('utf-8')
-
-    except requests.exceptions.RequestException as e:
-        logging.error(f"HTTP reqeust error: {e}")
-        raise e
-
-
 def read_yaml_string(yaml_string):
     try:
         yaml_data = yaml.safe_load(yaml_string)
@@ -87,3 +55,60 @@ def read_yaml_string(yaml_string):
     except yaml.YAMLError as e:
         logging.error(f"YAML parse error: {e}")
         raise e
+
+
+class ExternalResource:
+    def __init__(self, resource_type, url, cache_time, proxy=None):
+        self.cache = cache_time if cache_time is not None else 86400
+        self.proxy = proxy
+        self.resource_type = resource_type
+        self.url = url
+
+    def load(self):
+        if self.resource_type == 'http':
+            try:
+                current_time = datetime.now()
+                url_hash = calculate_url_hash(self.url)
+                cache_file = os.path.join(CACHE_DIR, f'{url_hash}.cache')
+
+                # 检查缓存文件是否存在并且未过期
+                if os.path.exists(cache_file):
+                    cached_time = (current_time - datetime.fromtimestamp(os.path.getmtime(cache_file))).total_seconds()
+                    if cached_time < self.cache:
+                        logging.info(f"Using cached resource: {self.url}, cached time: {int(cached_time)}s, cache time: {self.cache}s")
+                        with open(cache_file, 'rb') as file:
+                            cached_data = file.read()
+                        return cached_data.decode('utf-8')
+
+                logging.info(f"Downloading resource: {self.url}")
+                proxies = None
+                if self.proxy is not None:
+                    logging.info(f"Using proxy: {self.proxy}")
+                    proxies = {
+                        'http': self.proxy,
+                        'https': self.proxy
+                    }
+
+                response = requests.get(self.url, proxies=proxies)
+                response.raise_for_status()  # 检查是否下载成功
+
+                # 获取响应的二进制数据
+                downloaded_data = response.content
+
+                # 将新下载的数据写入缓存文件
+                with open(cache_file, 'wb') as file:
+                    file.write(downloaded_data)
+
+                return downloaded_data.decode('utf-8')
+
+            except requests.exceptions.RequestException as e:
+                logging.error(f"HTTP reqeust error: {e}")
+                raise e
+
+        elif self.resource_type == 'file':
+            with open(self.url, 'rb') as file:
+                data = file.read()
+            return data.decode('utf-8')
+
+        else:
+            raise ValueError(f"不支持的 type: {self.resource_type}")
